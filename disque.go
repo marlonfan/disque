@@ -17,7 +17,7 @@ type Pool struct {
 }
 
 // New creates a new connection to a given Disque Pool.
-func New(address string, extra ...string) (*Pool, error) {
+func New(address string, password string, extra ...string) (*Pool, error) {
 	pool := &redis.Pool{
 		MaxIdle:     1024,
 		MaxActive:   1024,
@@ -27,6 +27,12 @@ func New(address string, extra ...string) (*Pool, error) {
 			c, err := redis.Dial("tcp", address)
 			if err != nil {
 				return nil, err
+			}
+			if password != "" {
+				if _, err := c.Do("AUTH", password); err != nil {
+					c.Close()
+					return nil, err
+				}
 			}
 			return c, err
 		},
